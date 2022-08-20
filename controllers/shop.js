@@ -166,18 +166,23 @@ exports.getCheckout = (req, res, next) => {
       });
 
       return stripe.checkout.sessions.create({
-        payment_method: ['card'],
+        payment_method_types: ['card'],
         line_items: products.map(p => {
           return {
-            name: p.productId.title,
-            description: p.productId.description,
-            amount: p.productId.price * 100,
-            currency: 'usd',
+            price_data: {
+              unit_amount: p.productId.price * 100,
+              currency: 'usd',
+              product_data: {
+                name: p.productId.title,
+                description: p.productId.description,
+              }
+            },
             quantity: p.quantity
           }
         }),
-        success_url: `${req.protocol}://${req.host}/checkout/success`,
-        cancel_url: `${req.protocol}://${req.host}/checkout/cancel`,
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.hostname}/checkout/success`,
+        cancel_url: `${req.protocol}://${req.hostname}/checkout/cancel`,
       })
     })
     .then((session) => {
